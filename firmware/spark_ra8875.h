@@ -269,7 +269,7 @@ CS       10		53           YES       CS
 	  #define pgm_read_byte(addr) (*(const unsigned char *)(addr))
 	  #define pgm_read_word(addr) (*(const unsigned short *)(addr))
 	#endif
-#elif defined(STM32F2XX) || defined(STM32F10X_MD) || defined(STM32_SERIES_F1) || defined(STM32_SERIES_F2)
+#elif !defined(SPARK) && (defined(STM32F2XX) || defined(STM32F10X_MD) || defined(STM32_SERIES_F1) || defined(STM32_SERIES_F2))
 /* 
 --------------------------------------------------------------
 			STM32 BOARDS
