@@ -305,10 +305,12 @@ CS       10		53           YES       CS
 --------------------------------------------------------------
 */
 	#include "application.h"
+	/*
 	#define pgm_read_byte(addr) (*(const unsigned char *)(addr))
 	#define pgm_read_byte_near(addr) (*(const unsigned char *)(addr))
 	#define pgm_read_word(addr) (*(const unsigned short *)(addr))
 	#define pgm_read_word_near(addr) (*(const unsigned short *)(addr))
+	*/
 	#if defined(_FORCE_PROGMEM__)
 		#undef _FORCE_PROGMEM__
 	#endif
@@ -339,7 +341,7 @@ CS       10		53           YES       CS
 	#error "your board it's not supported yet!"
 #endif
 
-#include "Print.h"
+//#include "Print.h"
 //end _settings/RA8875_CPU_commons.h
 
 #if !defined(swapvals)
