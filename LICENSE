@@ -1,0 +1,12 @@
+This is a library for RAiO RA8875 Display Driver.
+This is a development version for SPARK core of the most current version
+and since I really don't like the spark toolchain it may contain a lot of errors.
+Created by Max MC Costa for .s.u.m.o.t.o.y., the author of the original RA8875 library.
+Under development, please do not use for any products.
+
+LICENSE
+This software and any of his part has been released under GNU version 3.0
+
+
+For Spark Core (library version 0.11p8)
+To download go to https://github.com/ScruffR/adafruit_hx8357
