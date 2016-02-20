@@ -142,7 +142,205 @@ CS       10		53           YES       CS
 #ifndef _SPARKRA8875MC_H_
 #define _SPARKRA8875MC_H_
 
-#include "spark_ra8875/_settings/RA8875_CPU_commons.h"
+//#include "spark_ra8875/_settings/RA8875_CPU_commons.h"
+#if defined(ENERGIA)
+	#include "Energia.h"
+	#undef byte
+	#define byte uint8_t
+	#if defined(__TM4C129XNCZAD__) || defined(__TM4C1294NCPDT__)//tiva???
+		#define NEEDS_SET_MODULE
+		#define _FASTCPU
+	#elif defined(__LM4F120H5QR__) || defined(__TM4C123GH6PM__)//stellaris first version
+		#define NEEDS_SET_MODULE
+		#define _FASTCPU
+	#elif defined(__MSP430MCU__)//MSP430???
+		// don't know
+	#elif defined(TMS320F28069)//C2000???
+		// don't know
+	#elif defined(__CC3200R1M1RGC__)//CC3200???
+		// don't know
+	#endif
+	static uint8_t SPImodule;
+	static uint8_t SPDR;
+#elif defined(__AVR__)
+/* 
+--------------------------------------------------------------
+			8 BIT AVR BOARDS (UNO,YUN,LEONARDO,ETC.)
+	Fully supported (tested)
+--------------------------------------------------------------
+*/
+	#if !defined(_FORCE_PROGMEM__)
+		#define _FORCE_PROGMEM__
+	#endif
+	#define __PRGMTAG_	PROGMEM
+	#include "Arduino.h"
+	#include <pins_arduino.h>
+	#include <math.h>
+	#include <avr/pgmspace.h>
+#elif defined(__MK20DX128__) || defined(__MK20DX256__) || defined(__MKL26Z64__)
+/* 
+--------------------------------------------------------------
+			TEENSY 3, TEENSY 3.1, TEENSY 3.2, TEENSY LC
+	Fully supported (tested)
+--------------------------------------------------------------
+*/
+	#define ___TEENSYES
+	#define _FASTCPU//It's a fast CPU with a fast SPI
+	#include "Arduino.h"
+	#include <avr/pgmspace.h>//Teensy3 and AVR arduinos can use pgmspace.h (maybe not needed)
+	#if defined(_FORCE_PROGMEM__)
+		#undef _FORCE_PROGMEM__//force library not use PROGMEM
+		#define PROGMEM __attribute__((section(".progmem.data")))//Mmm... Maybe not needed
+	#endif
+	#define __PRGMTAG_	
+#elif defined(__32MX320F128H__) || defined(__32MX795F512L__) //chipkit uno, chipkit max
+/* 
+--------------------------------------------------------------
+			CHIPKIT UNO, CHIPKIT MAX
+	Partially supported and never tested
+	the following defines need some changes!
+--------------------------------------------------------------
+*/
+	#define ___CHIPKIT
+	#define _FASTCPU//It's a fast CPU with a fast SPI
+	#include "Arduino.h"
+	#if defined(_FORCE_PROGMEM__)
+		#undef _FORCE_PROGMEM__
+	#endif
+	#ifndef __PGMSPACE_H_
+	  #define __PGMSPACE_H_ 1
+	  #define PROGMEM
+	  #define PGM_P  const char *
+	  #define PSTR(str) (str)
+	  #define pgm_read_byte_near(addr) pgm_read_byte(addr)
+	  #define pgm_read_byte(addr) (*(const unsigned char *)(addr))
+	  #define pgm_read_word(addr) (*(const unsigned short *)(addr))
+	#endif
+	#define __PRGMTAG_	
+#elif defined (__arm__) && defined(ARDUINO_ARCH_SAM)
+/* 
+--------------------------------------------------------------
+			ARDUINO DUE
+	Fully supported (tested)
+--------------------------------------------------------------
+*/
+	#define ___DUESTUFF
+	#define _FASTCPU//It's a fast CPU with a fast SPI
+	#include "Arduino.h"
+	#include <pins_arduino.h>
+	#ifndef __PGMSPACE_H_
+	  #define __PGMSPACE_H_ 1
+	  #define PROGMEM
+	  #define PGM_P  const char *
+	  #define PSTR(str) (str)
+	  #define pgm_read_byte_near(addr) pgm_read_byte(addr)
+	  #define pgm_read_byte(addr) (*(const unsigned char *)(addr))
+	  #define pgm_read_word(addr) (*(const unsigned short *)(addr))
+	#endif
+	#define __PRGMTAG_	
+#elif defined (__arm__) && defined(ARDUINO_ARCH_SAMD)
+/* 
+--------------------------------------------------------------
+			ARDUINO ZERO
+	Actually NOT supported
+--------------------------------------------------------------
+*/
+	#include "Arduino.h"
+	#include <pins_arduino.h>
+	#define ___ZEROSTUFF
+	#error "your board it's not supported yet!"
+#elif defined (__arm__) && defined(__SAM3X8E__)
+/* 
+--------------------------------------------------------------
+			ARDUINO DUE COMPATIBLE
+	Fully supported (as DUE, tested)
+--------------------------------------------------------------
+*/
+	#define ___DUESTUFF
+	#define _FASTCPU
+	#include "Arduino.h"
+	#include <pins_arduino.h>
+	#ifndef __PGMSPACE_H_
+	  #define __PGMSPACE_H_ 1
+	  #define PROGMEM
+	  #define PGM_P  const char *
+	  #define PSTR(str) (str)
+	  #define pgm_read_byte_near(addr) pgm_read_byte(addr)
+	  #define pgm_read_byte(addr) (*(const unsigned char *)(addr))
+	  #define pgm_read_word(addr) (*(const unsigned short *)(addr))
+	#endif
+#elif defined(STM32F2XX) || defined(STM32F10X_MD) || defined(STM32_SERIES_F1) || defined(STM32_SERIES_F2)
+/* 
+--------------------------------------------------------------
+			STM32 BOARDS
+	Initial support and actually won't compile
+--------------------------------------------------------------
+*/
+	#define ___STM32STUFF
+	#include "Arduino.h"
+	#if defined(_FORCE_PROGMEM__)
+		#undef _FORCE_PROGMEM__
+	#endif
+	#define __PRGMTAG_	
+#elif defined(ESP8266)
+/* 
+--------------------------------------------------------------
+			XTENSA (ESP8266)
+	It compiles but never tested
+--------------------------------------------------------------
+*/
+	#include "Arduino.h"
+	#include <pins_arduino.h>
+	//#define _FASTCPU
+	#if defined(_FORCE_PROGMEM__)
+		//#undef _FORCE_PROGMEM__
+		#define PROGMEM __attribute__((section(".progmem.data")))
+	#endif
+	#define __PRGMTAG_	
+#elif defined (__arm__) && defined(SPARK)
+/* 
+--------------------------------------------------------------
+			PARTICLE PHOTON, ETC.
+	Still in development
+--------------------------------------------------------------
+*/
+	#include "application.h"
+	#define pgm_read_byte(addr) (*(const unsigned char *)(addr))
+	#define pgm_read_byte_near(addr) (*(const unsigned char *)(addr))
+	#define pgm_read_word(addr) (*(const unsigned short *)(addr))
+	#define pgm_read_word_near(addr) (*(const unsigned short *)(addr))
+	#if defined(_FORCE_PROGMEM__)
+		#undef _FORCE_PROGMEM__
+	#endif
+	#undef PROGMEM
+	#define PROGMEM __attribute__((section(".progmem.data")))//fix the compiler warning
+	#define __PRGMTAG_	
+#elif defined(__arm__) && !defined(ESP8266) && !defined(___TEENSYES) && !defined(SPARK) && !defined(STM32F2XX) && !defined(STM32F10X_MD) && !defined(STM32_SERIES_F1) && !defined(STM32_SERIES_F2) && !defined(ESP8266)
+/* 
+--------------------------------------------------------------
+			ARM generic
+	Mistery....
+--------------------------------------------------------------
+*/
+	#if defined(_FORCE_PROGMEM__)
+		#undef _FORCE_PROGMEM__
+	#endif
+	#include "Arduino.h"
+	#define __PRGMTAG_	
+	#warning "Generic Arm detected, not sure if your board it's compatible!"
+
+
+/* 
+--------------------------------------------------------------
+			NOT SUPPORTED
+--------------------------------------------------------------
+*/
+#else
+	#error "your board it's not supported yet!"
+#endif
+
+#include "Print.h"
+//end _settings/RA8875_CPU_commons.h
 
 #if !defined(swapvals)
 	#if defined(ESP8266)
@@ -182,10 +380,976 @@ CJK-Uni:	\u4E00 -> \u9FD5	/u4E ... /u9F
 */
 /* ----------------------------DO NOT TOUCH ANITHING FROM HERE ------------------------*/
 
-#include "spark_ra8875/_settings/font.h"
-#include "spark_ra8875/_settings/RA8875Registers.h"
-#include "spark_ra8875/_settings/RA8875ColorPresets.h"
-#include "spark_ra8875/_settings/RA8875UserSettings.h"
+//#include "spark_ra8875/_settings/font.h"
+	typedef struct __PRGMTAG_ {
+			const uint8_t 	*data;
+			uint8_t 		image_width;
+			int				image_datalen;
+	} tImage;
+
+	typedef struct {
+			uint8_t 		char_code;
+			const tImage 	*image;
+	} tChar;
+
+	typedef struct {
+			uint8_t 		length;
+			const tChar 	*chars;
+			uint8_t			font_width;
+			uint8_t			font_height;
+			bool 			rle;
+	} tFont;
+	//end spark_ra8875/_settings/font.h
+//#include "spark_ra8875/_settings/RA8875Registers.h"
+
+	#define CENTER 				9998
+	#define ARC_ANGLE_MAX 		360		
+	#define ARC_ANGLE_OFFSET 	-90	
+	#define ANGLE_OFFSET		-90
+	
+	static const uint8_t _RA8875colorMask[6] = {11,5,0,13,8,3};//for color masking, first 3 byte for 65K
+	//initialization parameters---------------------------------------------------------------------
+	const static uint8_t initStrings[3][15] = {
+	//{0x07,0x03,0x03,0x27,0x00,0x05,0x04,0x03,0xEF,0x00,0x05,0x00,0x0E,0x00,0x02},//0 -> 320x240 (0A)
+	{0x07,0x03,0x82,0x3B,0x00,0x01,0x00,0x05,0x0F,0x01,0x02,0x00,0x07,0x00,0x09},//1 -> 480x272 (10)   -> 0
+	//{0x07,0x03,0x01,0x4F,0x05,0x0F,0x01,0x00,0xDF,0x01,0x0A,0x00,0x0E,0x00,0x01},//2 -> 640x480
+	{0x07,0x03,0x81,0x63,0x00,0x03,0x03,0x0B,0xDF,0x01,0x1F,0x00,0x16,0x00,0x01},//3 -> 800x480        -> 1
+	{0x07,0x03,0x81,0x63,0x00,0x03,0x03,0x0B,0xDF,0x01,0x1F,0x00,0x16,0x00,0x01} //4 -> 800x480_ALT    -> 2
+	//0    1    2    3    4    5    6    7    8    9    10   11   12   13   14
+	};
+	/*
+	0: - sys clock -
+	1: - sys clock -
+	2: - sys clock -
+	3:LCD Horizontal Display Width
+	4:Horizontal Non-Display Period Fine Tuning Option
+	5:LCD Horizontal Non-Display Period
+	6:HSYNC Start Position
+	7:HSYNC Pulse Width
+	8:LCD Vertical Display Height 1
+	9:LCD Vertical Display Height 2
+	10:LCD Vertical Non-Display Period 1
+	11:LCD Vertical Non-Display Period 2
+	12:VSYNC Start Position Register 1
+	13:VSYNC Start Position Register 2
+	14:VSYNC Pulse Width Register
+	*/
+	//PostBurner PLL parameters --------------------------------------------------------------
+	const static uint8_t sysClockPar[3][2] = {
+	//{0x0B,0x01},//0 -> 320x240		->
+	{0x0B,0x01},//1 -> 480x272		    -> 0
+	//{0x0B,0x01},//2 -> 640x480			
+	{0x0B,0x01},//3 -> 800x480			-> 1
+	{0x0B,0x01} //4 -> 800x480_ALT		-> 2
+	};
+	
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//    Font Parameters
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//index:x -> w,h,baselineLowOffset,baselineTopOffset,variableWidth
+	const static uint8_t fontDimPar[4][5] = {
+		{8,16,2,4,0},// INT font
+		{8,16,3,0,0},// ROM X16
+		{12,24,2,2,0},//ROM X24
+		{16,32,2,2,0},//ROM X32
+	};
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//                            System & Configuration Registers
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+/* Power and Display Control Register [0x01]
+----- Bit 7 (LCD Display Off)
+0:off, 1:on
+----- Bit 6,5,4,3,2, (na)
+----- Bit 1 (Sleep Mode)
+0:normal, 1:sleep
+----- Bit 0 (Software Reset)
+0:no action, 1:reset */
+#define RA8875_PWRR             		0x01//Power and Display Control Register
+	#define RA8875_PWRR_DISPON      0x80
+	#define RA8875_PWRR_DISPOFF     0x00
+	#define RA8875_PWRR_SLEEP       0x02
+	#define RA8875_PWRR_NORMAL      0x00
+	#define RA8875_PWRR_SOFTRESET   0x01
+/* REG[02h] Memory Read/Write Command (MRWC)
+Data to write in memory corresponding to the setting of
+MWCR1[3:2]. Continuous data write cycle can be accepted in
+bulk data write case.
+*/ 
+#define RA8875_MRWC             		0x02//Memory Read/Write Command
+	#define RA8875_CMDWRITE         	0x80
+	#define RA8875_CMDREAD          	0xC0
+	#define RA8875_DATAWRITE        	0x00
+	#define RA8875_DATAREAD         	0x40
+	#define RA8875_STATREG				0x40
+/* Pixel Clock Setting Register 	[0x04]
+----- Bit 7 (PCLK Inversion)
+0:PDAT at PLCK rising , 1:PDAT at PLCK falling
+----- Bit 6,5,4,3,2 (na)
+----- Bit 1,0 (PCLK Period Setting)
+00: PCLK period = System Clock period.
+01: PCLK period = 2 times of System Clock period
+10: PCLK period = 4 times of System Clock period
+11: PCLK period = 8 times of System Clock period*/
+#define RA8875_PCSR             	  0x04//Pixel Clock Setting Register
+/* Serial Flash/ROM Configuration 	 [0x05]
+----- Bit 7 (Serial Flash/ROM I/F # Select)
+0:Serial Flash/ROM 0 , 1:Serial Flash/ROM 1
+----- Bit 6 (Serial Flash/ROM Address Mode)
+0: 24 bits address mode
+----- Bit 5 (Serial Flash/ROM Waveform Mode)
+----- Bit 4,3 (Serial Flash /ROM Read Cycle)
+00: 4 bus -> no dummy cycle
+01: 5 bus -> 1 byte dummy cycle
+1x: 6 bus -> 2 byte dummy cycle
+----- Bit 2 (Serial Flash /ROM Access Mode)
+0:Font mode, 1:DMA mode
+----- Bit 1,0 (Serial Flash /ROM I/F Data Latch Mode Select)
+0x: Single Mode
+10: Dual Mode 0
+11: Dual Mode 1*/
+
+	#define RA8875_SROC         		  0x05//Serial Flash/ROM Configuration
+/* Serial Flash/ROM CLK			     [0x06]
+----- Bit 7,6,5,4,3,2 (na) 
+----- Bit 1,0 (Serial Flash/ROM Clock Frequency Setting) 
+0x: SFCL frequency = System clock frequency(DMA on and 256 clr)
+10: SFCL frequency = System clock frequency / 2
+11: SFCL frequency = System clock frequency / 4 */
+#define RA8875_SFCLR         		  0x06//Serial Flash/ROM CLK
+	#define EXTROM_SFCLSPEED	0b00000011// /4 0b00000010 /2
+/* System Configuration Register		 [0x10]
+----- Bit 7,6,5,4 (na) 
+----- Bit 3,2 (Color Depth Setting) 
+00: 8-bpp generic TFT, i.e. 256 colors
+1x: 16-bpp generic TFT, i.e. 65K colors
+----- Bit 1,0 (MCUIF Selection) 
+00: 8-bit MCU Interface
+1x: 16-bit MCU Interface */
+#define RA8875_SYSR             	  0x10//System Configuration Register
+/* LCD Horizontal Display Width Register [0x14]
+----- Bit 7 (na)
+----- Bit 6,5,4,3,2,1,0 (Horizontal Display Width Setting Bit)
+no more than 0x64( max with = 800)
+note: Horizontal display width(pixels) = (HDWR + 1) * 8 */
+#define RA8875_HDWR             	  0x14//LCD Horizontal Display Width Register
+/* Horizontal Non-Display Period Fine Tuning Option Register [0x15]
+----- Bit 7 (DE polarity)
+0:High, 1:Low
+----- Bit 6,5,4 (na)
+----- Bit 3,2,1,0 (Horizontal Non-Display Period Fine Tuning(HNDFT)) */
+#define RA8875_HNDFTR           	  0x15//Horizontal Non-Display Period Fine Tuning Option Register
+/* LCD Horizontal Non-Display Period Register [0x16]
+----- Bit 7,6,5 (na)
+----- Bit 4,0 (HSYNC Start Position)
+note: HSYNC Start Position(pixels) = (HSTR + 1) * 8 */
+#define RA8875_HNDR             	  0x16//LCD Horizontal Non-Display Period Register
+/* HSYNC Start Position Register	 [0x17]
+----- Bit 7,6,5 (na)
+----- Bit 4,0 (HSYNC Start Position)
+note: HSYNC Start Position(pixels) = (HSTR + 1) * 8 */
+#define RA8875_HSTR             	  0x17//HSYNC Start Position Register
+/* HSYNC Pulse Width Register		 [0x18]
+----- Bit 7 (HSYNC Polarity)
+0:Low, 1:High
+----- Bit 6,5 (na)
+----- Bit 4,0 (HSYNC Pulse Width(HPW))
+note: HSYNC Pulse Width(pixels) = (HPW + 1) * 8 */
+#define RA8875_HPWR             	  0x18//HSYNC Pulse Width Register
+#define RA8875_VDHR0            	  0x19//LCD Vertical Display Height Register 0
+//#define RA8875_VDHR1            	  0x1A//LCD Vertical Display Height Register 1
+#define RA8875_VNDR0            	  0x1B//LCD Vertical Non-Display Period Register 0
+//#define RA8875_VNDR1            	  0x1C//LCD Vertical Non-Display Period Register 1
+#define RA8875_VSTR0            	  0x1D//VSYNC Start Position Register 0
+//#define RA8875_VSTR1            	  0x1E//VSYNC Start Position Register 1
+#define RA8875_VPWR             	  0x1F//VSYNC Pulse Width Register
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//                           LCD Display Control Registers
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+/* Display Configuration Register	  [0x20]
+----- Bit 7 (Layer Setting Control)
+0:one Layer, 1:two Layers
+----- Bit 6,5,4 (na)
+----- Bit 3 (Horizontal Scan Direction, for n = SEG number)
+0: SEG0 to SEG(n-1), 1: SEG(n-1) to SEG0
+----- Bit 2 (Vertical Scan direction, for n = COM number)
+0: COM0 to COM(n-1), 1: COM(n-1) to COM0
+----- Bit 1,0 (na) */
+#define RA8875_DPCR				  	  0x20//Display Configuration Register
+/* Font Control Register 0			  [0x21]
+----- Bit 7 (CGRAM/CGROM Font Selection Bit in Text Mode)
+0:CGROM font, 1:CGRAM font
+----- Bit 6 (na)
+----- Bit 5 (External/Internal CGROM)
+0:Internal CGROM (RA8875_SFRSET=0), 1:External CGROM(RA8875_FWTSET bit6,7 = 0)
+----- Bit 4,3,2 (na)
+----- Bit 1,0 (Font Selection for internal CGROM)
+00: ISO/IEC 8859-1
+01: ISO/IEC 8859-2
+10: ISO/IEC 8859-3
+11: ISO/IEC 8859-4 */
+#define RA8875_FNCR0				  0x21//Font Control Register 0
+/* Font Control Register 1			 [0x22]
+----- Bit 7 (Full Alignment)
+0:disabled, 1:enabled
+----- Bit 6 (Font Transparency)
+0:disabled, 1:enabled
+----- Bit 5 (na)
+----- Bit 4 (Font Rotation)
+0:normal, 1:90 degrees
+----- Bit 3,2 (Horizontal Font Enlargement)
+00:normal, 01:x2, 10:x3, 11:x4
+----- Bit 1,0 (Vertical Font Enlargement)
+00:normal, 01:x2, 10:x3, 11:x4 */
+#define RA8875_FNCR1				  0x22//Font Control Register 1
+/* CGRAM Select Register			  [0x23]
+----- Bit 7,6,5,4,3,2,1,0 ------------- */
+#define RA8875_CGSR				      0x23//CGRAM Select Register
+/* Horizontal Scroll Offset Register 0 [0x24]
+----- Bit 7,6,5,4,3,2,1,0 ------------- */
+#define RA8875_HOFS0				  0x24//Horizontal Scroll Offset Register 0
+/* Horizontal Scroll Offset Register 1 [0x25]
+----- Bit 7,6,5,4,3 (na) ------------- 
+----- Bit 2,0 (Horizontal Display Scroll Offset) */
+#define RA8875_HOFS1				  0x25//Horizontal Scroll Offset Register 1
+/* Vertical Scroll Offset Register 0 [0x26]
+----- Bit 7,6,5,4,3,2,1,0 ------------- */
+#define RA8875_VOFS0				  0x26//Vertical Scroll Offset Register 0
+/* Vertical Scroll Offset Register 1 [0x27]
+----- Bit 7,6,5,4,3,2 (na) ------------- 
+----- Bit 1,0 (Vertical Display Scroll Offset) ------------- */
+#define RA8875_VOFS1				  0x27//Vertical Scroll Offset Register 1
+/* Font Line Distance Setting Register[0x29]
+----- Bit 7,6,5 (na) ------------- 
+----- Bit 4,0 (Font Line Distance Setting) */
+#define RA8875_FLDR				  	  0x29//Font Line Distance Setting Register
+
+/* Font Write Cursor Horizontal Position Register 0 [0x2A]
+----- Bit 7,6,5,4,3,2,1,0 ------------- */
+#define RA8875_F_CURXL				  0x2A//Font Write Cursor Horizontal Position Register 0
+/* Font Write Cursor Horizontal Position Register 1 [0x2B]
+----- Bit 7,2 (na) ------------- 
+----- Bit 1,0 (Font Write Cursor Horizontal Position) */
+#define RA8875_F_CURXH				  0x2B//Font Write Cursor Horizontal Position Register 1
+/* Font Write Cursor Vertical Position Register 0 [0x2C]
+----- Bit 7,6,5,4,3,2,1,0 ------------- */
+#define RA8875_F_CURYL				  0x2C//Font Write Cursor Vertical Position Register 0
+/* Font Write Cursor Vertical Position Register 1 [0x2D]
+----- Bit 7,1 (na) ------------- 
+----- Bit 0 (Font Write Cursor Vertical Position Register 1) */
+#define RA8875_F_CURYH				  0x2D//Font Write Cursor Vertical Position Register 1
+/* Font Write Type Setting Register [0x2E]
+----- Bit 7,6 -------------
+00: 16x16(full) - 8x16(half) - nX16(var)
+01: 24x24(full) - 12x24(half) - nX24(var)
+1x: 32x32(full) - 16x32(half) - nX32(var)
+----- Bit 5,0 -------------
+Font to Font Width Setting
+00 --> 3F (0 to 63 pixels) */
+#define RA8875_FWTSET         		  0x2E//Font Write Type Setting Register
+/* Serial Font ROM Setting 			 [0x2F]
+----- Bit 7,6,5 -------------
+000: GT21L16TW / GT21H16T1W
+001: GT30L16U2W
+010: GT30L24T3Y / GT30H24T3Y
+011: GT30L24M1Z
+100: GT30L32S4W / GT30H32S4W
+----- Bit 4,3,2 -------------
+000: GB2312
+001: GB12345/GB18030
+010: BIG5
+011: UNICODE
+100: ASCII
+101: UNI-Japanese
+110: JIS0208
+111: Latin/Greek/ Cyrillic / Arabic
+----- Bit 1,0 -------------
+00: normal(ASCII) - normal(LGC) -    na(arabic)
+01: Arial(ASCII) -  var width(LGC) - PresFormA(arabic)
+10: Roman(ASCII) -  na(LGC) -        na(arabic) */
+#define RA8875_SFRSET         		  0x2F//Serial Font ROM Setting
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//                    Active Window & Scroll Window Setting Registers
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#define RA8875_HSAW0            	  0x30//Horizontal Start Point 0 of Active Window
+//#define RA8875_HSAW1            	  0x31//Horizontal Start Point 1 of Active Window
+#define RA8875_VSAW0            	  0x32//Vertical   Start Point 0 of Active Window
+//#define RA8875_VSAW1            	  0x33//Vertical   Start Point 1 of Active Window
+#define RA8875_HEAW0            	  0x34//Horizontal End   Point 0 of Active Window
+//#define RA8875_HEAW1            	  0x35//Horizontal End   Point 1 of Active Window
+#define RA8875_VEAW0           		  0x36//Vertical   End   Point of Active Window 0
+//#define RA8875_VEAW1            	  0x37//Vertical   End   Point of Active Window 1
+
+#define RA8875_HSSW0            	  0x38//Horizontal Start Point 0 of Scroll Window
+//#define RA8875_HSSW1            	  0x39//Horizontal Start Point 1 of Scroll Window
+#define RA8875_VSSW0            	  0x3A//Vertical 	 Start Point 0 of Scroll Window
+//#define RA8875_VSSW1            	  0x3B//Vertical 	 Start Point 1 of Scroll Window
+#define RA8875_HESW0            	  0x3C//Horizontal End   Point 0 of Scroll Window
+//#define RA8875_HESW1            	  0x3D//Horizontal End   Point 1 of Scroll Window
+#define RA8875_VESW0            	  0x3E//Vertical 	 End   Point 0 of Scroll Window
+//#define RA8875_VESW1            	  0x3F//Vertical 	 End   Point 1 of Scroll Window
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//                    Cursor Setting Registers
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+/* Memory Write Control Register 0   [0x40]
+----- Bit 7 (Select Mode)
+0: Graphic Mode
+1: Text Mode
+----- Bit 6 (Font Write Cursor/ Memory Write Cursor Enable)
+0: Font write cursor/ Memory Write Cursor is not visible
+1: Font write cursor/ Memory Write Cursor is visible
+----- Bit 5 (Font Write Cursor/ Memory Write Cursor Blink Enable)
+0: Normal display
+1: Blink display
+----- Bit 4 (na)
+----- Bit 3,2 (Memory Write Direction (Only for Graphic Mode)
+00: Left -> Right then Top -> Down
+01: Right -> Left then Top -> Down
+10: Top -> Down then Left -> Right
+11: Down -> Top then Left -> Right
+----- Bit 1 (Memory Write Cursor Auto-Increase Disable)
+0: Cursor auto-increases when memory write
+1: Cursor doesn’t auto-increases when memory write
+----- Bit 0(Memory Read Cursor Auto-Increase Disable) 
+0: Cursor auto-increases when memory read
+1: Cursor doesn’t auto-increases when memory read */
+#define RA8875_MWCR0            	  0x40//Memory Write Control Register 0
+
+/* Memory Write Control Register 1   [0x41]
+----- Bit 7 (Graphic Cursor Enable)
+0:disable, 1:enable
+----- Bit 6,5,4 (Graphic Cursor Selection)
+000: Graphic Cursor Set 1
+...
+111: Graphic Cursor Set 8
+----- Bit 3,2 (Write Destination Selection)
+00: Layer 1~2
+01: CGRAM
+10: Graphic Cursor
+11: Pattern
+Note : When CGRAM is selected , RA8875_FNCR0 bit 7 must be set as 0.
+----- Bit 1 (na)
+----- Bit 0 (Layer No. for Read/Write Selection)
+When resolution =< 480x400 or color depth = 8bpp:
+0: Layer 1
+1: Layer 2
+When resolution > 480x400 and color depth > 8bpp:
+na */
+#define RA8875_MWCR1            	  0x41//Memory Write Control Register 1
+/*
+from 0 to 255
+*/
+#define RA8875_BTCR            	  	  0x44//Blink Time Control Register
+/* Memory Read Cursor Direction      [0x45]
+----- Bit 7,6,5,4,3,2(na)
+----- Bit 1,0(Memory Read Direction (Only for Graphic Mode))
+00: Left -> Right then Top -> Down
+01: Right -> Left then Top -> Down
+10: Top -> Down then Left -> Right
+11: Down -> Top then Left -> Right */
+#define RA8875_MRCD            	  	  0x45//Memory Read Cursor Direction
+#define RA8875_CURH0            	  0x46//Memory Write Cursor Horizontal Position Register 0
+//#define RA8875_CURH1            	  0x47//Memory Write Cursor Horizontal Position Register 1
+#define RA8875_CURV0            	  0x48//Memory Write Cursor Vertical Position Register 0
+//#define RA8875_CURV1            	  0x49//Memory Write Cursor Vertical Position Register 1
+
+//#define RA8875_RCURH0           	  0x4A//Memory Read Cursor Horizontal Position Register 0
+//#define RA8875_RCURH1           	  0x4B//Memory Read Cursor Horizontal Position Register 1
+//#define RA8875_RCURV0           	  0x4C//Memory Read Cursor Vertical Position Register 0
+//#define RA8875_RCURV1           	  0x4D//Memory Read Cursor Vertical Position Register 1
+
+
+/* Font Write Cursor and Memory Write Cursor Horizontal Size  [0x4E]
+----- Bit 7,6,5 (na)
+----- Bit 4,0(Font Write Cursor Horizontal Size in pixels) */
+#define RA8875_CURHS            	  0x4E//Font Write Cursor and Memory Write Cursor Horizontal Size Register
+/* Font Write Cursor Vertical Size Register   [0x4F]
+----- Bit 7,6,5 (na)
+----- Bit 4,0(Font Write Cursor Vertical Size in pixels) */
+#define RA8875_CURVS            	  0x4F//Font Write Cursor Vertical Size Register
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//              Block Transfer Engine(BTE) Control Registers
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#define RA8875_BECR0            	  0x50//BTE Function Control Register 0
+#define RA8875_BECR1            	  0x51//BTE Function Control Register 1
+/* Layer Transparency Register 0     [0x52]
+----- Bit 7,6 (Layer1/2 Scroll Mode)
+00: Layer 1/2 scroll simultaneously
+01: Only Layer 1 scroll
+10: Only Layer 2 scroll
+11: Buffer scroll (using Layer 2 as scroll buffer)
+----- Bit 5 (Floating Windows Transparency Display With BGTR)
+0:disable, 1:enable
+----- Bit 4,3 (na)
+----- Bit 2,1,0(Layer1/2 Display Mode) 
+000: Only Layer 1 is visible
+001: Only Layer 2 is visible
+010: Lighten-overlay mode
+011: Transparent mode
+100: Boolean OR
+101: Boolean AND
+110: Floating window mode
+111: Reserve */
+#define RA8875_LTPR0            	  0x52//Layer Transparency Register 0
+/* Layer Transparency Register 1     [0x53]
+----- Bit 7,6,5,4 (Layer Transparency Setting for Layer 2)
+0000: Total display
+0001: 7/8 display
+0010: 3/4 display
+0011: 5/8 display
+0100: 1/2 display
+0101: 3/8 display
+0110: 1/4 display
+0111: 1/8 display
+1000: Display disable
+----- Bit 3,2,1,0 (Layer Transparency Setting for Layer 1)
+0000: Total display
+0001: 7/8 display
+0010: 3/4 display
+0011: 5/8 display
+0100: 1/2 display
+0101: 3/8 display
+0110: 1/4 display
+0111: 1/8 display
+1000: Display disable */
+#define RA8875_LTPR1            	  0x53//Layer Transparency Register 1
+#define RA8875_HSBE0				  0x54//Horizontal Source Point 0 of BTE
+//#define RA8875_HSBE1				  0x55//Horizontal Source Point 1 of BTE
+#define RA8875_VSBE0				  0x56//Vertical Source Point 0 of BTE
+//#define RA8875_VSBE1				  0x57//Vertical Source Point 1 of BTE
+#define RA8875_HDBE0				  0x58//Horizontal Destination Point 0 of BTE
+//#define RA8875_HDBE1				  0x59//Horizontal Destination Point 1 of BTE
+#define RA8875_VDBE0				  0x5A//Vertical Destination Point 0 of BTE
+//#define RA8875_VDBE1				  0x5B//Vertical Destination Point 1 of BTE
+#define RA8875_BEWR0				  0x5C//BTE Width Register 0
+//#define RA8875_BEWR1				  0x5D//BTE Width Register 1
+#define RA8875_BEHR0				  0x5E//BTE Height Register 0
+//#define RA8875_BEHR1				  0x5F//BTE Height Register 1
+
+/* Pattern Set No for BTE            [0x66]
+----- Bit 7 (Pattern Format)
+0: 8x8
+1: 16x16
+----- Bit 6,5,4 (na)
+----- Bit 3,2,1,0 (Pattern Set No)
+If pattern Format = 8x8 then Pattern Set [3:0]
+If pattern Format = 16x16 then Pattern Set [1:0] is valid */
+#define RA8875_PTNO				  	  0x66//Pattern Set No for BTE
+
+//BTE Raster OPerations - there's 16 possible operations but these are the main ones likely to be useful
+#define RA8875_BTEROP_SOURCE	0xC0	//Overwrite dest with source (no mixing) *****THIS IS THE DEFAULT OPTION****
+#define RA8875_BTEROP_BLACK		0xo0	//all black
+#define RA8875_BTEROP_WHITE		0xf0	//all white
+#define RA8875_BTEROP_DEST		0xA0    //destination unchanged
+#define RA8875_BTEROP_ADD		0xE0    //ADD (brighter)
+#define RA8875_BTEROP_SUBTRACT	0x20	//SUBTRACT (darker)
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//                            Color Registers
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#define RA8875_BGCR0				  0x60//Background Color Register 0 (R)
+//#define RA8875_BGCR1				  0x61//Background Color Register 1 (G)
+//#define RA8875_BGCR2				  0x62//Background Color Register 2 (B)
+#define RA8875_FGCR0				  0x63//Foreground Color Register 0 (R)
+//#define RA8875_FGCR1				  0x64//Foreground Color Register 1 (G)
+//#define RA8875_FGCR2				  0x65//Foreground Color Register 2 (B)
+#define RA8875_BGTR0				  0x67//Background Color Register for Transparent 0 (R)
+//#define RA8875_BGTR1				  0x68//Background Color Register for Transparent 1 (G)
+//#define RA8875_BGTR2				  0x69//Background Color Register for Transparent 2 (B)
+
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//                            TOUCH SCREEN REGISTERS
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#if !defined(USE_EXTERNALTOUCH)
+#define RA8875_TPCR0                  0x70//Touch Panel Control Register 0
+	//#define RA8875_TPCR0_ENABLE           0x80
+	//#define RA8875_TPCR0_DISABLE          0x00
+	#define RA8875_TPCR0_WAIT_512CLK      0x00
+	#define RA8875_TPCR0_WAIT_1024CLK     0x10
+	#define RA8875_TPCR0_WAIT_2048CLK     0x20
+	#define RA8875_TPCR0_WAIT_4096CLK     0x30
+	#define RA8875_TPCR0_WAIT_8192CLK     0x40
+	#define RA8875_TPCR0_WAIT_16384CLK    0x50
+	#define RA8875_TPCR0_WAIT_32768CLK    0x60
+	#define RA8875_TPCR0_WAIT_65536CLK    0x70
+	#define RA8875_TPCR0_WAKEENABLE       0x08
+	#define RA8875_TPCR0_WAKEDISABLE      0x00
+	#define RA8875_TPCR0_ADCCLK_DIV1      0x00
+	#define RA8875_TPCR0_ADCCLK_DIV2      0x01
+	#define RA8875_TPCR0_ADCCLK_DIV4      0x02
+	#define RA8875_TPCR0_ADCCLK_DIV8      0x03
+	#define RA8875_TPCR0_ADCCLK_DIV16     0x04
+	#define RA8875_TPCR0_ADCCLK_DIV32     0x05
+	#define RA8875_TPCR0_ADCCLK_DIV64     0x06
+	#define RA8875_TPCR0_ADCCLK_DIV128    0x07
+/*
+bits
+0,1: 00(idle), 10(TP event), 01(latch x) , 11(latch y)
+2:   1(Debounce enabled), 0(debounce disabled)
+3,4: NA
+5:   0(internal VREF), 1(Ext VREF)
+6:   0(AUTO mode, 1(MANUAL mode)
+*/
+#define RA8875_TPCR1            	  0x71//Touch Panel Control Register 1
+	#define RA8875_TPCR1_AUTO       0x00
+	#define RA8875_TPCR1_MANUAL     0x40
+	#define RA8875_TPCR1_VREFINT    0x00
+	#define RA8875_TPCR1_VREFEXT    0x20
+	#define RA8875_TPCR1_DEBOUNCE   0x04
+	#define RA8875_TPCR1_NODEBOUNCE 0x00
+	#define RA8875_TPCR1_IDLE       0x00
+	#define RA8875_TPCR1_WAIT       0x01
+	#define RA8875_TPCR1_LATCHX     0x02
+	#define RA8875_TPCR1_LATCHY     0x03
+
+#define RA8875_TPXH             	  0x72//Touch Panel X High Byte Data Register
+#define RA8875_TPYH             	  0x73//Touch Panel Y High Byte Data Register
+#define RA8875_TPXYL            	  0x74//Touch Panel X/Y Low Byte Data Register
+#endif
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//                            Graphic Cursor Setting Registers
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//#define RA8875_GCHP0            	  0x80//Graphic Cursor Horizontal Position Register 0
+//#define RA8875_GCHP1            	  0x81//Graphic Cursor Horizontal Position Register 1
+//#define RA8875_GCVP0            	  0x82//Graphic Cursor Vertical Position Register 0
+//#define RA8875_GCVP1            	  0x83//Graphic Cursor Vertical Position Register 0
+//#define RA8875_GCC0            	      0x84//Graphic Cursor Color 0
+//#define RA8875_GCC1            	      0x85//Graphic Cursor Color 1
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//                            PLL Setting Registers
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#define RA8875_PLLC1            	  0x88//PLL Control Register 1
+//#define RA8875_PLLC2            	  0x89//PLL Control Register 2
+
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//                            PWM Control Registers
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#define RA8875_P1CR             	  0x8A//PWM1 Control Register
+#define RA8875_P1DCR            	  0x8B//PWM1 Duty Cycle Register
+
+#define RA8875_P2CR             	  0x8C//PWM2 Control Register
+#define RA8875_P2DCR            	  0x8D//PWM2 Control Register
+
+	#define RA8875_PxCR_ENABLE      0x80
+	#define RA8875_PxCR_DISABLE     0x00
+	#define RA8875_PxCR_CLKOUT      0x10
+	#define RA8875_PxCR_PWMOUT      0x00
+
+
+
+ 	#define RA8875_PWM_CLK_DIV1     0x00
+	#define RA8875_PWM_CLK_DIV2     0x01
+	#define RA8875_PWM_CLK_DIV4     0x02
+	#define RA8875_PWM_CLK_DIV8     0x03
+	#define RA8875_PWM_CLK_DIV16    0x04
+	#define RA8875_PWM_CLK_DIV32    0x05
+	#define RA8875_PWM_CLK_DIV64    0x06
+	#define RA8875_PWM_CLK_DIV128   0x07
+	#define RA8875_PWM_CLK_DIV256   0x08
+	#define RA8875_PWM_CLK_DIV512   0x09
+	#define RA8875_PWM_CLK_DIV1024  0x0A
+	#define RA8875_PWM_CLK_DIV2048  0x0B
+	#define RA8875_PWM_CLK_DIV4096  0x0C
+	#define RA8875_PWM_CLK_DIV8192  0x0D
+	#define RA8875_PWM_CLK_DIV16384 0x0E
+	#define RA8875_PWM_CLK_DIV32768 0x0F 
+
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//                            Memory Clear
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+/* Memory Clear Control Register     [0x8E]
+----- Bit 7 (Memory Clear Function)
+0: End or Stop (if read this bit and it's 0, clear completed)
+1: Start the memory clear function
+----- Bit 6 (Memory Clear Area Setting)
+0: Clear the full window (ref. RA8875_HDWR,RA8875_VDHR0,RA8875_VDHR0ì1)
+1: Clear the active window
+----- Bit 5,4,3,2,1,0 (na)  */
+#define RA8875_MCLR             	  0x8E//Memory Clear Control Register
+
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//                            Drawing Control Registers
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#define RA8875_DCR                    0x90//Draw Line/Circle/Square Control Register
+	#define RA8875_DCR_LINESQUTRI_START   0x80
+	#define RA8875_DCR_LINESQUTRI_STOP    0x00
+	#define RA8875_DCR_LINESQUTRI_STATUS  0x80
+	#define RA8875_DCR_CIRCLE_START       0x40
+	#define RA8875_DCR_CIRCLE_STATUS      0x40
+	#define RA8875_DCR_CIRCLE_STOP        0x00
+	#define RA8875_DCR_FILL               0x20
+	#define RA8875_DCR_NOFILL             0x00
+	#define RA8875_DCR_DRAWLINE           0x00
+	#define RA8875_DCR_DRAWTRIANGLE       0x01
+	#define RA8875_DCR_DRAWSQUARE         0x10
+
+#define RA8875_DLHSR0         		  0x91//Draw Line/Square Horizontal Start Address Register0
+//#define RA8875_DLHSR1         		  0x92//Draw Line/Square Horizontal Start Address Register1
+#define RA8875_DLVSR0         		  0x93//Draw Line/Square Vertical Start Address Register0
+//#define RA8875_DLVSR1         		  0x94//Draw Line/Square Vertical Start Address Register1
+#define RA8875_DLHER0         		  0x95//Draw Line/Square Horizontal End Address Register0
+//#define RA8875_DLHER1         		  0x96//Draw Line/Square Horizontal End Address Register1
+#define RA8875_DLVER0         		  0x97//Draw Line/Square Vertical End Address Register0
+//#define RA8875_DLVER1         		  0x98//Draw Line/Square Vertical End Address Register0
+
+#define RA8875_DCHR0         		  0x99//Draw Circle Center Horizontal Address Register0
+//#define RA8875_DCHR1         		  0x9A//Draw Circle Center Horizontal Address Register1
+#define RA8875_DCVR0         		  0x9B//Draw Circle Center Vertical Address Register0
+//#define RA8875_DCVR1         		  0x9C//Draw Circle Center Vertical Address Register1
+#define RA8875_DCRR         		  0x9D//Draw Circle Radius Register
+
+#define RA8875_ELLIPSE                0xA0//Draw Ellipse/Ellipse Curve/Circle Square Control Register
+	#define RA8875_ELLIPSE_STATUS         0x80
+
+#define RA8875_ELL_A0         		  0xA1//Draw Ellipse/Circle Square Long axis Setting Register0
+//#define RA8875_ELL_A1         		  0xA2//Draw Ellipse/Circle Square Long axis Setting Register1
+#define RA8875_ELL_B0         		  0xA3//Draw Ellipse/Circle Square Short axis Setting Register0
+//#define RA8875_ELL_B1         		  0xA4//Draw Ellipse/Circle Square Short axis Setting Register1
+
+#define RA8875_DEHR0         		  0xA5//Draw Ellipse/Circle Square Center Horizontal Address Register0
+//#define RA8875_DEHR1         		  0xA6//Draw Ellipse/Circle Square Center Horizontal Address Register1
+#define RA8875_DEVR0         		  0xA7//Draw Ellipse/Circle Square Center Vertical Address Register0
+//#define RA8875_DEVR1         		  0xA8//Draw Ellipse/Circle Square Center Vertical Address Register1
+
+#define RA8875_DTPH0         		  0xA9//Draw Triangle Point 2 Horizontal Address Register0
+//#define RA8875_DTPH1         		  0xAA//Draw Triangle Point 2 Horizontal Address Register1
+#define RA8875_DTPV0         		  0xAB//Draw Triangle Point 2 Vertical Address Register0
+//#define RA8875_DTPV1         		  0xAC//Draw Triangle Point 2 Vertical Address Register1
+
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//                            DMA REGISTERS
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+#define RA8875_SSAR0				  0xB0//Source Starting Address REG 0
+//#define RA8875_SSAR1				  0xB1//Source Starting Address REG 1
+//#define RA8875_SSAR2				  0xB2//Source Starting Address REG 2
+//#define RA8875_????					0xB3//???????????
+
+#define RA8875_DTNR0				  0xB4//Block Width REG 0(BWR0) / DMA Transfer Number REG 0
+#define RA8875_BWR1					  0xB5//Block Width REG 1
+#define RA8875_DTNR1				  0xB6//Block Height REG 0(BHR0) /DMA Transfer Number REG 1
+#define RA8875_BHR1					  0xB7//Block Height REG 1
+#define RA8875_DTNR2				  0xB8//Source Picture Width REG 0(SPWR0) / DMA Transfer Number REG 2
+#define RA8875_SPWR1				  0xB9//Source Picture Width REG 1
+#define RA8875_DMACR				  0xBF//DMA Configuration REG
+
+
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//                            GPIO
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#define RA8875_GPIOX            	  0xC7
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//                            KEY-MATRIX
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#define RA8875_KSCR1            	  0xC0 //Key-Scan Control Register 1 (KSCR1)
+#define RA8875_KSCR2            	  0xC1 //Key-Scan Controller Register 2 (KSCR2)
+#define RA8875_KSDR0            	  0xC2 //Key-Scan Data Register (KSDR0)
+#define RA8875_KSDR1            	  0xC3 //Key-Scan Data Register (KSDR1)
+#define RA8875_KSDR2            	  0xC4 //Key-Scan Data Register (KSDR2)
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//                         Interrupt Control Registers
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#define RA8875_INTC1            	  0xF0//Interrupt Control Register1
+#define RA8875_INTC2            	  0xF1//Interrupt Control Register2
+	#define RA8875_INTCx_KEY        	  0x10
+	#define RA8875_INTCx_DMA        	  0x08
+	#define RA8875_INTCx_TP         	  0x04
+	#define RA8875_INTCx_BTE        	  0x02
+	
+	#define RA8875_ENABLE_INT_TP        ((uint8_t)(1<<2)) 
+	#define RA8875_DISABLE_INT_TP       ((uint8_t)(0<<2)) 
+	
+    /* Touch Panel Enable/Disable Reg TPCR0[7] */
+    #define TP_ENABLE   				((uint8_t)(1<<7))
+    #define TP_DISABLE  				((uint8_t)(0<<7))
+    #define TP_MODE_AUTO    			((uint8_t)(0<<6))   
+    #define TP_MODE_MANUAL  			((uint8_t)(1<<6))
+    #define TP_DEBOUNCE_OFF 			((uint8_t)(0<<2))
+    #define TP_DEBOUNCE_ON  			((uint8_t)(1<<2))
+	
+	
+    #define TP_ADC_CLKDIV_1             0
+    #define TP_ADC_CLKDIV_2             1        
+    #define TP_ADC_CLKDIV_4             2        
+    #define TP_ADC_CLKDIV_8             3      
+    #define TP_ADC_CLKDIV_16            4        
+    #define TP_ADC_CLKDIV_32            5        
+    #define TP_ADC_CLKDIV_64            6        
+    #define TP_ADC_CLKDIV_128           7
+    #define TP_ADC_SAMPLE_512_CLKS     ((uint8_t)(0<<4))
+    #define TP_ADC_SAMPLE_1024_CLKS    ((uint8_t)(1<<4))
+    #define TP_ADC_SAMPLE_2048_CLKS    ((uint8_t)(2<<4))
+    #define TP_ADC_SAMPLE_4096_CLKS    ((uint8_t)(3<<4))
+    #define TP_ADC_SAMPLE_8192_CLKS    ((uint8_t)(4<<4))
+    #define TP_ADC_SAMPLE_16384_CLKS   ((uint8_t)(5<<4))
+    #define TP_ADC_SAMPLE_32768_CLKS   ((uint8_t)(6<<4))
+    #define TP_ADC_SAMPLE_65536_CLKS   ((uint8_t)(7<<4))
+	//end spark_ra8875/_settings/RA8875Registers.h
+//#include "spark_ra8875/_settings/RA8875ColorPresets.h"
+const uint16_t	RA8875_BLACK            = 0x0000;
+const uint16_t 	RA8875_WHITE            = 0xFFFF;
+
+const uint16_t	RA8875_RED              = 0xF800;
+const uint16_t	RA8875_GREEN            = 0x07E0;
+const uint16_t	RA8875_BLUE             = 0x001F;
+
+const uint16_t 	RA8875_CYAN             = RA8875_GREEN | RA8875_BLUE;//0x07FF;
+const uint16_t 	RA8875_MAGENTA          = 0xF81F;
+const uint16_t 	RA8875_YELLOW           = RA8875_RED | RA8875_GREEN;//0xFFE0;  
+const uint16_t 	RA8875_LIGHT_GREY 		= 0xB5B2; // the experimentalist
+const uint16_t 	RA8875_LIGHT_ORANGE 	= 0xFC80; // the experimentalist
+const uint16_t 	RA8875_DARK_ORANGE 		= 0xFB60; // the experimentalist
+const uint16_t 	RA8875_PINK 			= 0xFCFF; // M.Sandercock
+const uint16_t 	RA8875_PURPLE 			= 0x8017; // M.Sandercock
+const uint16_t 	RA8875_GRAYSCALE 		= 2113;//grayscale30 = RA8875_GRAYSCALE*30
+//end spark_ra8875/_settings/RA8875ColorPresets.h
+//#include "spark_ra8875/_settings/RA8875UserSettings.h"
+/* ---------------------------- USER SETTINGS --------------------------------------*/
+/* [RENDER TEXT OPTIMIZATIONS] +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+From 0.70b11 the Font Rendering Engine has some optimizations for render font faster but this require much more code.
+Not all users need this so you can select if include Render Text Optimizations or not by comment the following line. */
+#define _RA8875_TXTRNDOPTIMIZER								// [default uncommented]
+
+/* [VISUALIZE RENDER TEXT OPTIMIZATIONS - >>> ONLY FOR DEBUG <<<] +++++++++++++++++++++++++++++++++++++++ 
+The Text Render optimizations introduced in b11 it's the result of testing several algorithms so it's in continue evolution.
+RA8875_VISPIXDEBUG force the rendering engine to show how the font it's rendered (Only for debug!!!).
+RA8875_TXTBENCH enable the font rendering engine to measure the time  (Only for debug!!!), this
+option works ONLY when  RA8875_VISPIXDEBUG it's uncommented or values are falsed*/
+//#define RA8875_VISPIXDEBUG 								// [default commented]
+//#define RA8875_TXTBENCH 									// [default commented]
+
+/* [USE_RA8875_SEPARATE_TEXT_COLOR] +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+RA8875 chip set color globally, this mean that if you set text color white and after you create
+a red circle, every text after that will result red text. 
+Enabling this feature your text will always maintain the choosed color. */
+#define USE_RA8875_SEPARATE_TEXT_COLOR 						// [default uncommented]
+
+/* [RENDERED FONTS FOLLOWS INTERNAL FONTS CURSORS] +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+The library internal tracking the x,y position of the text cursors but not the rendered fonts, by
+enabling this option you will force library to inform RA8875 to keep track of the x,y text cursor.
+This option will slow down a bit the text rendering (just a bit) */
+#define FORCE_RA8875_TXTREND_FOLLOW_CURS 					// [default uncommented]
+
+/* [DISABLE ALL TOUCH SCREEN LIBRARY CAPABILITIES AND RELATIVE CODE] +++++++++++++++++++++++++++++++++++++++
+If your project don't need Touch Screen or you choosed to use an external library you can comment out
+the following line and ALL resources related will not loaded at all. 
+If this is uncommented the CHOOSE YOUR TOUCH SCREEN TYPE has no effect. */
+//#define _AVOID_TOUCHSCREEN 								// [default commented]
+
+/* [CHOOSE YOUR TOUCH SCREEN TYPE] +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+This library supports the RA8875 internal resistive touch screen driver or a FT5206
+based capacitive touch screen driver. Below, you have to choose one of them.
+The Resistive Touch screen it's drived directly by RA8875.
+The Capacitive Touch Screen use a I2C chip called FT5206 (hardwired to address 0x38).
+Please choose at list one (NOT both), if you comment both it's the same as _AVOID_TOUCHSCREEN*/
+
+//#define USE_RA8875_TOUCH//resistive touch screen
+//#define USE_FT5206_TOUCH//capacitive touch screen
+
+/* [USE ALTERNATIVE I2C/WIRE ON ARDUINO DUE] +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Arduino DUE has 2 I2C interfaces, default use Wire but you can force library to use Wire1.
+Just uncomment the line below, this option works only for Arduino DUE and has NO effects
+on other CPU!
+*/
+
+//#define USE_DUE_WIRE1_INTERFACE//force use Wire1 (only for DUE, no effects on other CPU)
+
+/* [Default Interrupt Number for Touchscreen] [RA8875 & FT5206] ++++++++++++++++++++++++++++++++++
+Some microcontroller like Teensy 3,3.1 and LC automatically assign ISR number (since they
+can virtually assign ISR to any pin) but some old one like Arduino UNO have ISR hardcoded */
+#if !defined(_AVOID_TOUCHSCREEN)
+	#define __RA8875ISRINT 0// 								// [default 0, pin 2 on Arduino UNO]
+#endif
+
+/* [INTERNAL KEY MATRIX] +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+RA8875 has a 5x6 Key Matrix controller onboard, if you are not plan to use it
+better leave commented the following define since it will share some registers
+with several functions, otherwise de-comment it! */
+//#define USE_RA8875_KEYMATRIX 								// [default commented]
+
+/* [DEFAULT CURSOR BLINK RATE] +++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Nothing special here, you can set the default blink rate */
+#define DEFAULTCURSORBLINKRATE			10 					// [default 10]
+
+/* [DEFAULT INTERNAL FONT ENCODING] ++++++++++++++++++++++++++++++++++++++++++++++++++
+RA8875 has 4 different font set, same shape but suitable for most languages
+please look at RA8875 datasheet and choose the correct one for your language!
+ISO_IEC_8859_1 (default), 
+ISO_IEC_8859_2, 
+ISO_IEC_8859_3, 
+ISO_IEC_8859_4
+The default one it's the most common one and should work in most situations */
+#define DEFAULTINTENCODING				ISO_IEC_8859_1 		// [default ISO_IEC_8859_1]
+
+/* [STARTUP SETTINGS] +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
+#define _DFT_RA8875_TEXTWRAP			true 				// [default true]
+
+/* [DEFAULT EXTERNAL FONT-ROM TYPE] ++++++++++++++++++++++++++++++++++++++++++++
+If your card has a FONT-ROM installed, here you have to write wich one!
+I support both Genicomp and Eastrising since they are the same chip named differently!
+Possible solutions:
+GT21L16T1W	(Genicomp)
+GT21H16T1W	(Genicomp)
+GT23L16U2W	(Genicomp)
+GT30H24T3Y	(Genicomp)
+GT23L24T3Y	(Genicomp)
+GT23L24M1Z	(Genicomp)
+GT23L32S4W	(Genicomp)
+GT30H32S4W	(Genicomp)
+GT30L32S4W	(Genicomp)
+ER3303_1 	(Eastrising) *tested
+ER3304_1 	(Eastrising) *tested
+*/
+#define	_DFT_RA8875_EXTFONTROMTYPE		GT21L16T1W 			// [default GT21L16T1W]
+
+/* [DEFAULT EXTERNAL FONT-ROM ENCODING] ++++++++++++++++++++++++++++++++++++++++++++
+Having an external FONT-ROM mean choose the desidered encoding (supported by ROM-CHIP!)
+Possible solutions:
+GB2312, 
+GB12345, 
+BIG5, 
+UNICODE, 
+ASCII, 
+UNIJIS, 
+JIS0208, 
+LATIN/GREEK/ARABIC */
+#define	_DFT_RA8875_EXTFONTROMCODING	GB2312 				// [default GB2312]
+
+/* [Default Screen Rotation] ++++++++++++++++++++++++++++++++++++++++++++
+*/
+#define	_RA8875_DEFAULTSCRROT			0 					// [default 0]
+/* [Default Backlight Color] ++++++++++++++++++++++++++++++++++++++++++++
+*/
+#define	_RA8875_DEFAULTBACKLIGHT		RA8875_BLACK 		// [default RA8875_BLACK]
+
+/* [Default foreground Text Color] ++++++++++++++++++++++++++++++++++++++++++++
+*/
+#define	_RA8875_DEFAULTTXTFRGRND		RA8875_WHITE 		// [default RA8875_WHITE]
+
+/* [Default background Text Color] ++++++++++++++++++++++++++++++++++++++++++++
+*/
+#define	_RA8875_DEFAULTTXTBKGRND		RA8875_BLACK 		// [default RA8875_BLACK]
+
+/* [ARDUINO DUE SPI MODE] ++++++++++++++++++++++++++++++++++++++++++++
+This library support DUE SPI Extended mode, by decommenting the line below
+you have to choose from pin 4,10,52 for CS pin in DUE or you will get an error!
+*/
+//#define SPI_DUE_MODE_EXTENDED
+
+/*----------------------------------------------------------------------------------
+									SPI SPEED
+----------------------------------------------------------------------------------*/
+/*
+From here it's better don't touch anithing, everithing has been tuned for maximum speed.
+Only DUE or any AVR 8bit (like uno) can have some troubles with particular old libraries
+because the use of fast port handle, in that case....
+On Arduino DUE and other 8 bit Arduino MCU you can disable the fast CS port 
+by commenting #define _FASTSSPORT, this will force to use the classic digitalWrite.
+
+*/
+/* Accordly RA8875 datasheet the READ cycles and WRITE cycles have different speed:
+System clock/3(only write cycle), System clock/6(with read cycle)
+MAXSPISPEED parameters it's also related to MCU features so it probably need to be tuned.
+Not all MCU are capable to work at those speeds. Following parameters worked with both board I have.
+After som mail exchange with RAiO I solved the dilemma behind SPI speed limit:
+The RA8875 has limitation of 12Mhz SPI but this has been set because not all internal macros
+can run over that speed, the library automatically deal with this  so I was able to go over 20Mhz!
+At that speed you need to short cables as much you can, provide clean supply and good decoupling!
+DO NOT Exceed 23Mhz for RA8875! It will result in garbage on screen or run very slow.
+*/
+
+#if defined(SPI_HAS_TRANSACTION)
+//SPI transaction enabled library----------------------
+	#if defined(__MK20DX128__) || defined(__MK20DX256__) //[Teensy 3.0 , 3.1 , 3.2]
+		const static uint32_t MAXSPISPEED	= 22000000UL;  //don't go higher than 22000000!;
+	#elif defined(__MKL26Z64__)							 //[Teensy LC] (12 or 24 Mhz max)
+		const static uint32_t MAXSPISPEED	= 12000000UL;	 //default SPI main speed TeensyLC
+		const static uint32_t MAXSPISPEED2	= 22000000UL;  //don't go higher than 22000000!;
+	#elif defined(___DUESTUFF)							 //[DUE]
+		const static uint32_t MAXSPISPEED	= 15000000UL;  // try experiment higher values but NOT over 22000000!
+		//#define _FASTSSPORT
+	#elif defined(ESP8266)	
+		const static uint32_t MAXSPISPEED	= 8000000UL;  //don't go higher than 22000000!;
+		//#define _FASTSSPORT
+	#elif defined(SPARK)
+		const static uint32_t MAXSPISPEED	= 8000000UL;  //don't go higher than 22000000!;
+	// TODO: add more CPU here!
+	#else												 //rest of the world (UNO, etc)
+		const static uint32_t MAXSPISPEED	= 10000000UL;  //be careful, higher values result in extremely slow rendering!
+		#define _FASTSSPORT
+	#endif
+#else
+// legacy SPI library-------------------------------------------------------------
+	#if defined(ENERGIA) 
+	// LaunchPad, FraunchPad and StellarPad specific
+		#if defined(__TM4C129XNCZAD__) || defined(__TM4C1294NCPDT__)//tiva???
+			#define SPI_SPEED_WRITE 	SPI_CLOCK_DIV4
+			#define SPI_SPEED_READ 		SPI_CLOCK_DIV8
+			#define SPI_SPEED_SAFE 		SPI_CLOCK_DIV8
+		#elif defined(__LM4F120H5QR__) || defined(__TM4C123GH6PM__)//stellaris first version
+			#define SPI_SPEED_WRITE 	SPI_CLOCK_DIV4
+			#define SPI_SPEED_READ 		SPI_CLOCK_DIV8
+			#define SPI_SPEED_SAFE 		SPI_CLOCK_DIV8
+		#elif defined(__MSP430MCU__)//MSP430???
+			#define SPI_SPEED_WRITE 	SPI_CLOCK_DIV4
+			#define SPI_SPEED_READ 		SPI_CLOCK_DIV4
+			#define SPI_SPEED_SAFE 		SPI_CLOCK_DIV8
+		#elif defined(TMS320F28069)//C2000???
+			#define SPI_SPEED_WRITE 	SPI_CLOCK_DIV4
+			#define SPI_SPEED_READ 		SPI_CLOCK_DIV4
+			#define SPI_SPEED_SAFE 		SPI_CLOCK_DIV8
+		#elif defined(__CC3200R1M1RGC__)//CC3200???
+			#define SPI_SPEED_WRITE 	SPI_CLOCK_DIV4
+			#define SPI_SPEED_READ 		SPI_CLOCK_DIV4
+			#define SPI_SPEED_SAFE 		SPI_CLOCK_DIV8
+		#endif
+	#else
+	// DUE
+		#if defined(___DUESTUFF)
+			#define SPI_SPEED_WRITE 	SPI_CLOCK_DIV4	//84 divided by 4 = 21Mhz
+			#define SPI_SPEED_READ 		SPI_CLOCK_DIV8
+			#define SPI_SPEED_SAFE 		SPI_CLOCK_DIV6	//10.5Mhz
+			//#define _FASTSSPORT
+		#elif defined(ESP8266)//legacy
+			#define SPI_SPEED_WRITE 	SPI_CLOCK_DIV4	//8mhz
+			#define SPI_SPEED_READ 		SPI_CLOCK_DIV8
+			#define SPI_SPEED_SAFE 		SPI_CLOCK_DIV4	//8
+		#elif defined(SPARK)//Really early development
+			#define SPI_SPEED_WRITE 	SPI_CLOCK_DIV4	//8mhz
+			#define SPI_SPEED_READ 		SPI_CLOCK_DIV8
+			#define SPI_SPEED_SAFE 		SPI_CLOCK_DIV4	//8
+		#else
+		// TODO: Add more CPU here!
+	//rest of the world included UNO, etc.
+			#define SPI_SPEED_WRITE 	SPI_CLOCK_DIV2	//UNO = 4Mhz
+			#define SPI_SPEED_READ 		SPI_CLOCK_DIV4
+			#define SPI_SPEED_SAFE 		SPI_CLOCK_DIV2
+			#define _FASTSSPORT
+		#endif
+	#endif
+#endif
+
+//Touch Screen stuff (do not touch)
+#if defined(_AVOID_TOUCHSCREEN)
+	#undef USE_RA8875_TOUCH
+	#undef USE_FT5206_TOUCH
+#else
+	#if defined(USE_RA8875_TOUCH) && defined(USE_FT5206_TOUCH)
+		#error you have to choose between USE_RA8875_TOUCH & USE_FT5206_TOUCH!
+	#elif !defined(USE_RA8875_TOUCH) && !defined(USE_FT5206_TOUCH)
+		#define _AVOID_TOUCHSCREEN
+	#elif defined(USE_FT5206_TOUCH) && !defined(USE_RA8875_TOUCH)
+		//#include "Wire.h"//include the support for FT5206
+		static const uint8_t _FT5206REgisters[9] = {
+			0x16,0x3C,0xE9,0x01,0x01,0xA0,0x0A,0x06,0x28
+		};
+	#elif !defined(USE_FT5206_TOUCH) && defined(USE_RA8875_TOUCH)
+		#define TOUCSRCAL_XLOW	70//62
+		#define TOUCSRCAL_YLOW	111//153
+		#define TOUCSRCAL_XHIGH	895//924
+		#define TOUCSRCAL_YHIGH	880//917
+		//#include "_settings/RA8875Calibration.h"
+	#endif
+#endif
+// end RA8875UserSettings.h
 
 #if defined(_FORCE_PROGMEM__) && !defined(ESP8266)
 template <typename T> T PROGMEM_read (const T * sce)
