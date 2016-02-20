@@ -3,8 +3,8 @@ A benchmark test - measure the speed of many drawing functions of RA8875 library
 Open your serial monitor for results
 */
 
-#include <SPI.h>
-#include <spark_ra8875.h>
+//#include <SPI.h>
+#include "spark_ra8875/spark_ra8875.h"
 
 #define DELAY_BETWEEN 500
 

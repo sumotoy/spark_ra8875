@@ -142,7 +142,7 @@ CS       10		53           YES       CS
 #ifndef _SPARKRA8875MC_H_
 #define _SPARKRA8875MC_H_
 
-#include "_settings/RA8875_CPU_commons.h"
+#include "spark_ra8875/_settings/RA8875_CPU_commons.h"
 
 #if !defined(swapvals)
 	#if defined(ESP8266)
@@ -182,10 +182,10 @@ CJK-Uni:	\u4E00 -> \u9FD5	/u4E ... /u9F
 */
 /* ----------------------------DO NOT TOUCH ANITHING FROM HERE ------------------------*/
 
-#include "_settings/font.h"
-#include "_settings/RA8875Registers.h"
-#include "_settings/RA8875ColorPresets.h"
-#include "_settings/RA8875UserSettings.h"
+#include "spark_ra8875/_settings/font.h"
+#include "spark_ra8875/_settings/RA8875Registers.h"
+#include "spark_ra8875/_settings/RA8875ColorPresets.h"
+#include "spark_ra8875/_settings/RA8875UserSettings.h"
 
 #if defined(_FORCE_PROGMEM__) && !defined(ESP8266)
 template <typename T> T PROGMEM_read (const T * sce)
