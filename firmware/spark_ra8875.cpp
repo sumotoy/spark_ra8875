@@ -584,7 +584,7 @@ void spark_ra8875::_initialize()
 	delay(10); //100
 	setCursorBlinkRate(DEFAULTCURSORBLINKRATE);//set default blink rate
 	setIntFontCoding(DEFAULTINTENCODING);//set default internal font encoding
-	setFont(INT);	//set internal font use
+	setFont(INTERNAL);	//set internal font use
 	//postburner PLL!
 	_setSysClock(sysClockPar[_initIndex][0],sysClockPar[_initIndex][1],initStrings[_initIndex][2]);
 	_inited = true;
@@ -1269,7 +1269,7 @@ void spark_ra8875::setFont(enum RA8875fontSource s)
 {
 	if (!_textMode) _setTextMode(true);//we are in graph mode?
 	_TXTparameters &= ~(1 << 7);//render OFF
-	if (s == INT){
+	if (s == INTERNAL){
 		_setFNTdimensions(0);
 		//check the font coding
 		if (bitRead(_TXTparameters,0) == 1) {//0.96b22 _extFontRom = true
@@ -1295,7 +1295,7 @@ void spark_ra8875::setFont(enum RA8875fontSource s)
 			_writeRegister(RA8875_SROC,0x28);// 0x28 rom 0,24bit adrs,wave 3,1 byte dummy,font mode, single mode 00101000
 			delay(4);
 		} else {
-			setFont(INT);
+			setFont(INTERNAL);
 			_setFNTdimensions(0);
 		}
 	} else {
@@ -1349,7 +1349,7 @@ void spark_ra8875::setFont(const tFont *font)
 		} else {
 			//font malformed, doesn't have needed space parameter
 			//will return to system font
-			setFont(INT);
+			setFont(INTERNAL);
 			return;
 		}
 	}
@@ -2086,7 +2086,7 @@ void spark_ra8875::_charWriteR(const char c,uint8_t offset,uint16_t fcolor,uint1
 
 /**************************************************************************/
 /*!	PRIVATE
-		Write a single char, only INT and FONT ROM char (internal RA9975 render)
+		Write a single char, only INTERNAL and FONT ROM char (internal RA9975 render)
 		NOTE: It identify correctly println and /n & /r
 */
 /**************************************************************************/
