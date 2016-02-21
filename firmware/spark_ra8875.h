@@ -1873,7 +1873,7 @@ using Print::write;
 						digitalWrite(_cs, LOW);// for now
 					#endif
 				#elif defined(SPARK)
-					pinResetFast(_cs, LOW);
+					pinResetFast(_cs);
 				#elif !defined(ESP8266) && defined(_FASTSSPORT)
 					*csport &= ~cspinmask;
 				#else
@@ -1901,7 +1901,7 @@ using Print::write;
 					digitalWrite(_cs, HIGH);
 				#endif
 			#elif defined(SPARK)
-				pinSetFast(_cs, HIGH);
+				pinSetFast(_cs);
 			#elif !defined(ESP8266) && defined(_FASTSSPORT)
 				*csport |= cspinmask;
 			#else
