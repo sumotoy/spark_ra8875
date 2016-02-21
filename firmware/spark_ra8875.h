@@ -305,6 +305,7 @@ CS       10		53           YES       CS
 --------------------------------------------------------------
 */
 	#include "application.h"
+	#include "math.h"
 	/*
 	#define pgm_read_byte(addr) (*(const unsigned char *)(addr))
 	#define pgm_read_byte_near(addr) (*(const unsigned char *)(addr))
@@ -318,6 +319,9 @@ CS       10		53           YES       CS
 		#define __bitSet(value, bit) ((value) |= (1UL << (bit)))
 		#define __bitClear(value, bit) ((value) &= ~(1UL << (bit)))
 		#define bitWrite(value, bit, bitvalue) (bitvalue ? __bitSet(value, bit) : __bitClear(value, bit))
+	#endif
+	#ifndef PI
+		#define PI 3.14159265358979323846
 	#endif
 	#if defined(_FORCE_PROGMEM__)
 		#undef _FORCE_PROGMEM__
