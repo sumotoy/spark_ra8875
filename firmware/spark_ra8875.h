@@ -110,7 +110,7 @@ CLK:		 	A3
 MOSI:			A5
 MISO:			A4
 CS:				A2
-INT:		
+INT:			ANY?
 SDA:			D0
 SCL:			D1
 

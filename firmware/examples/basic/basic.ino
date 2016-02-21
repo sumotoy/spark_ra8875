@@ -6,7 +6,16 @@ Explain the minimal setup and how to use instances...
 //#include "spark_ra8875/fonts/akashi_36.c"////akashi_36
 
 
-
+/*
+Particle Photon Pinouts
+CLK:		 	A3
+MOSI:			A5
+MISO:			A4
+CS:				A2
+INT:			ANY?
+SDA:			D0
+SCL:			D1
+*/
 #define RA8875_CS A2
 
 

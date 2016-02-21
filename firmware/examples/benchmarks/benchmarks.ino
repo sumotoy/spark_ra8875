@@ -5,9 +5,19 @@ Open your serial monitor for results
 
 #include "spark_ra8875/spark_ra8875.h"
 
+
 #define DELAY_BETWEEN 500
 
- 
+/*
+Particle Photon Pinouts
+CLK:		 	A3
+MOSI:			A5
+MISO:			A4
+CS:				A2
+INT:			ANY?
+SDA:			D0
+SCL:			D1
+*/
 #define RA8875_CS A2
 
 
