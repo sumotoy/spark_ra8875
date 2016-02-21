@@ -311,6 +311,14 @@ CS       10		53           YES       CS
 	#define pgm_read_word(addr) (*(const unsigned short *)(addr))
 	#define pgm_read_word_near(addr) (*(const unsigned short *)(addr))
 	*/
+	#ifndef bitRead
+		#define bitRead(a,b) ((a) & (1<<(b)))
+	#endif
+	#ifndef bitWrite
+		#define __bitSet(value, bit) ((value) |= (1UL << (bit)))
+		#define __bitClear(value, bit) ((value) &= ~(1UL << (bit)))
+		#define bitWrite(value, bit, bitvalue) (bitvalue ? __bitSet(value, bit) : __bitClear(value, bit))
+	#endif
 	#if defined(_FORCE_PROGMEM__)
 		#undef _FORCE_PROGMEM__
 	#endif
