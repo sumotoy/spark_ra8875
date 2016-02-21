@@ -2,10 +2,8 @@
 Explain the minimal setup and how to use instances...
 */
 
-
-#include <SPI.h>
-#include <spark_ra8875.h>
-//#include "fonts/akashi_36.c"////akashi_36
+#include "spark_ra8875/spark_ra8875.h"
+//#include "spark_ra8875/fonts/akashi_36.c"////akashi_36
 
 
 

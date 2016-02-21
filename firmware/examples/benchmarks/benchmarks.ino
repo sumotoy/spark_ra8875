@@ -3,7 +3,6 @@ A benchmark test - measure the speed of many drawing functions of RA8875 library
 Open your serial monitor for results
 */
 
-//#include <SPI.h>
 #include "spark_ra8875/spark_ra8875.h"
 
 #define DELAY_BETWEEN 500
@@ -285,39 +284,35 @@ void test(uint8_t rot) {
   Serial.print("Test Pixels              ");
   Serial.println(testPixels());
   delay(DELAY_BETWEEN);
-/*
+
   Serial.print("Text                     ");
   Serial.println(testText());
   delay(DELAY_BETWEEN);
-*/
-/*
+
   Serial.print("Lines                    ");
   Serial.println(testLines(RA8875_CYAN));
   delay(DELAY_BETWEEN);
-*/
-/*
+
   Serial.print("Horiz/Vert Lines         ");
   Serial.println(testFastLines(RA8875_RED, RA8875_BLUE));
   delay(DELAY_BETWEEN);
-*/
+
   Serial.print("Rectangles (outline)     ");
   Serial.println(testRects(RA8875_GREEN));
   delay(DELAY_BETWEEN);
-/*
+
   Serial.print("Rectangles (filled)      ");
   Serial.println(testFilledRects(RA8875_YELLOW, RA8875_MAGENTA));
   delay(DELAY_BETWEEN);
-*/
-/*
+
   Serial.print("Circles (filled)         ");
   Serial.println(testFilledCircles(10, RA8875_MAGENTA, RA8875_YELLOW));
   delay(DELAY_BETWEEN);
-*/
-/*
+
   Serial.print("Circles (outline)        ");
   Serial.println(testCircles(10, RA8875_WHITE));
   delay(DELAY_BETWEEN);
-*/
+
   Serial.print("Triangles (outline)      ");
   Serial.println(testTriangles(RA8875_CYAN));
   delay(DELAY_BETWEEN);
@@ -325,7 +320,7 @@ void test(uint8_t rot) {
   Serial.print("Triangles (filled)       ");
   Serial.println(testFilledTriangles(RA8875_RED, RA8875_CYAN));
   delay(DELAY_BETWEEN);
-/*
+
   Serial.print("Rounded rects (outline)  ");
   Serial.println(testRoundRects());
   delay(DELAY_BETWEEN);
@@ -333,7 +328,7 @@ void test(uint8_t rot) {
   Serial.print("Rounded rects (filled)   ");
   Serial.println(testFilledRoundRects());
   delay(DELAY_BETWEEN);
-*/
+
 
   Serial.println("--------------------------------\n");
 }
