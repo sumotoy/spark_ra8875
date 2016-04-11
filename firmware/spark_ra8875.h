@@ -2,7 +2,7 @@
 	--------------------------------------------------
 	RA8875 LCD/TFT Graphic Controller Driver Library
 	--------------------------------------------------
-	Version:0.70b11p9
+	Version:0.70b11p11
 	++++++++++++++++++++++++++++++++++++++++++++++++++
 	Written by: Max MC Costa for s.u.m.o.t.o.y
 	++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -45,6 +45,10 @@ M.Sandercrock, the experimentalist, MrTom and many others
 	0.70b11p8 changes: Fixed some small error (thanks Mr TOM) that affects drawLine
 	and drawLineAngle. Initial support for SPARK devices (very early development)
 	Fixed a couple of examples.
+	0.70b11p9 changes: Now compile with particle spark! But spark development toolchain it's a nightmare so 
+	use https://github.com/sumotoy/spark_ra8875
+	0.70b11p10: Some changes proposed by MrTom to fix the triangle hardware bug of RA8875
+	0.70b11p11: Minor changes on triangles helper (MrTom)
 -------------------------------------------------------------------------------------
 				>>>>>>>>>>>>>>>>>>>>> Wiring <<<<<<<<<<<<<<<<<<<<<<<<<
 -------------------------------------------------------------------------------------
@@ -368,7 +372,7 @@ CS       10		53           YES       CS
 enum RA8875sizes { 			RA8875_480x272, RA8875_800x480, RA8875_800x480ALT, Adafruit_480x272, Adafruit_800x480 };
 enum RA8875tcursor { 		NOCURSOR=0,IBEAM,UNDER,BLOCK };//0,1,2,3
 enum RA8875tsize { 			X16=0,X24,X32 };//0,1,2
-enum RA8875fontSource { 	INTERNAL=0, EXT };//0,1
+enum RA8875fontSource { 	INTERNAL=0, EXTERNAL };//0,1
 enum RA8875fontCoding { 	ISO_IEC_8859_1, ISO_IEC_8859_2, ISO_IEC_8859_3, ISO_IEC_8859_4 };
 enum RA8875extRomType { 	GT21L16T1W, GT21H16T1W, GT23L16U2W, GT30L16U2W, GT30H24T3Y, GT23L24T3Y, GT23L24M1Z, GT23L32S4W, GT30H32S4W, GT30L32S4W, ER3303_1, ER3304_1, ER3301_1 };
 enum RA8875extRomCoding { 	GB2312, GB12345, BIG5, UNICODE, ASCII, UNIJIS, JIS0208, LATIN };
@@ -1481,7 +1485,7 @@ class spark_ra8875 : public Print {
 	uint8_t 	getFontHeight(boolean inRows=false);
 	//----------FONT -------------------------------------------------------------------------
 	void		setExternalFontRom(enum RA8875extRomType ert, enum RA8875extRomCoding erc,enum RA8875extRomFamily erf=STANDARD);
-	void 		setFont(enum RA8875fontSource s);//INT,EXT (if you have a chip installed)
+	void 		setFont(enum RA8875fontSource s);//INTERNAL,EXTERNAL (if you have a chip installed)
 	//void 		setFont(const struct FONT_DEF *	fnt);
 	void		setFont(const tFont *font);
 	void 		setIntFontCoding(enum RA8875fontCoding f);
@@ -1795,6 +1799,7 @@ using Print::write;
 	void 		_circle_helper(int16_t x0, int16_t y0, int16_t r, uint16_t color, bool filled);
 	void 		_rect_helper(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color, bool filled);
 	void 		_roundRect_helper(int16_t x, int16_t y, int16_t w, int16_t h, int16_t r, uint16_t color, bool filled);
+	float		_check_area(int16_t Ax, int16_t Ay, int16_t Bx, int16_t By, int16_t Cx, int16_t Cy);
 	void 		_triangle_helper(int16_t x0, int16_t y0, int16_t x1, int16_t y1, int16_t x2, int16_t y2, uint16_t color, bool filled);
 	void 		_ellipseCurve_helper(int16_t xCenter, int16_t yCenter, int16_t longAxis, int16_t shortAxis,uint8_t curvePart, uint16_t color, bool filled);
 	void 		_drawArc_helper(uint16_t cx, uint16_t cy, uint16_t radius, uint16_t thickness, float startAngle, float endAngle, uint16_t color);
@@ -1806,11 +1811,12 @@ using Print::write;
 	void 		_charLineRender(bool lineBuffer[],int charW,int16_t x,int16_t y,int16_t currentYposition,uint16_t fcolor);
 	#endif
 	
+	
 	//convert a 16bit color(565) into 8bit color(332) as requested by RA8875 datasheet
 	//inline __attribute__((always_inline))
 	uint8_t _color16To8bpp(uint16_t color) 
 		__attribute__((always_inline)) {
-		return ((color & 0x3800) >> 6 | (color & 0x00E0) >> 3 | (color & 0x0003));
+		return (map((color & 0xF800) >> 11, 0,28, 0,7)<<5 | map((color & 0x07E0) >> 5, 0,56, 0,7)<<2 | map(color & 0x001F, 0,24, 0,3));
 	}
 		
 	//inline __attribute__((always_inline)) 
